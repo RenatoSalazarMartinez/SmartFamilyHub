@@ -1,0 +1,18 @@
+# Cache y configuraciones de IDEs (IntelliJ y Android Studio)
+.idea/
+*.iml
+*.iws
+.gradle/
+build/
+captures/
+
+# Archivos privados y de compilación de Apache NetBeans
+nbproject/private/
+build/
+nbdist/
+dist/
+
+# Archivos del Sistema Operativo y OneDrive
+.DS_Store
+Thumbs.db
+*.tmp
