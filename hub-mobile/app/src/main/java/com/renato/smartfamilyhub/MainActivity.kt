@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             SmartFamilyHubTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(paddingContent = innerPadding)
                 }
             }
         }
