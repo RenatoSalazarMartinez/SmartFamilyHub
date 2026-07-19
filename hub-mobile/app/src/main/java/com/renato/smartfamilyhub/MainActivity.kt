@@ -16,8 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.Icons.Default
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.material3.Card
@@ -78,42 +79,52 @@ data class TareaFamiliar(
 @Composable
 fun HomeScreen(paddingContent: PaddingValues) {
 
-    // 🧠 ESTADO: Recuerda quién está seleccionado
-    var miembroSeleccionado by remember { mutableStateOf("Verónica") }
+    // ESTADO: Recuerda quién está seleccionado
+    //var miembroSeleccionado by remember { mutableStateOf("Verónica") }
 
-    // 📊 DATOS DE PRUEBA: Tareas asociadas a cada miembro
-    val tareasPorMiembro = mapOf(
-        "Verónica" to listOf(
-            TareaFamiliar(1, "Preparar el desayuno", "Prioridad Alta ☀️", estaCompletada = true),
-            TareaFamiliar(2, "Regar las plantas", "Por la tarde 💧"),
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana"),
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana"),
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana"),
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana"),
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana"),
+    // USUARIO LOGUEADO: Dueño de la sesión (nunca cambia al tocar avatares)
+    val usuarioLogueado by remember { mutableStateOf("Verónica") }
 
-        ),
-        "Wilder" to listOf(
-            TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana")
-        ),
-        "Enzo" to listOf(
-            TareaFamiliar(4, "Pasear al perro", "20 min de caminata 🐾")
-        ),
-        "Renato" to listOf(
-            TareaFamiliar(5, "Lavar los platos", "Antes de las 3:00 PM 🍳"),
-            TareaFamiliar(6, "Sacar la basura", "Por la noche 🗑️")
+    // MIEMBRO VISUALIZADO: Filtro superior para ver las tareas de otros
+    var miembroVisualizado by remember { mutableStateOf("Verónica") }
+
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    // Estados para los campos del formulario de tareas
+    var nuevoTitulo by remember { mutableStateOf("") }
+    var nuevaDescripcion by remember { mutableStateOf("") }
+    var prioridadSeleccionada by remember { mutableStateOf("Media") } // Valor por defecto
+
+    // DATOS DE PRUEBA: Tareas asociadas a cada miembro
+    val tareasPorMiembro = remember {
+        mutableStateMapOf(
+            "Verónica" to mutableStateListOf(
+                TareaFamiliar(1, "Preparar el desayuno", "Prioridad Alta ☀️", estaCompletada = true),
+                TareaFamiliar(2, "Regar las plantas", "Por la tarde 💧"),
+                TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana")
+            ),
+            "Wilder" to mutableStateListOf(
+                TareaFamiliar(3, "Barrer y trapear la sala", "Fin de semana")
+            ),
+            "Enzo" to mutableStateListOf(
+                TareaFamiliar(4, "Pasear al perro", "20 min de caminata 🐾")
+            ),
+            "Renato" to mutableStateListOf(
+                TareaFamiliar(5, "Lavar los platos", "Antes de las 3:00 PM 🍳"),
+                TareaFamiliar(6, "Sacar la basura", "Por la noche 🗑️")
+            )
         )
-    )
+    }
 
-    // 🔍 Buscamos en el mapa usando el nombre guardado en el estado
-    val tareasDelMiembro = tareasPorMiembro[miembroSeleccionado] ?: emptyList()
+    // Buscamos en el mapa usando el nombre guardado en el estado
+    val tareasDelMiembro = tareasPorMiembro[miembroVisualizado] ?: remember { mutableStateListOf() }
 
-    // 📅 Lógica de la fecha actual
+    // Lógica de la fecha actual
     val fechaActual = LocalDate.now()
     val formateador = DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es", "ES"))
     val fechaTexto = fechaActual.format(formateador).replaceFirstChar { it.uppercase() }
 
-    // 🎨 Configuración de los miembros y sus colores
+    // Configuración de los miembros y sus colores
     val miembros = listOf(
         Pair("Verónica", MaterialTheme.colorScheme.primary),
         Pair("Wilder", MaterialTheme.colorScheme.secondary),
@@ -135,10 +146,10 @@ fun HomeScreen(paddingContent: PaddingValues) {
                 },
                 actions = {
                     IconButton(onClick = { /* TODO: Notificaciones */ }) {
-                        Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones")
+                        Icon(imageVector = Default.Notifications, contentDescription = "Notificaciones")
                     }
                     IconButton(onClick = { /* TODO: Perfil */ }) {
-                        Icon(imageVector = Icons.Default.AccountCircle, contentDescription = "Perfil de usuario")
+                        Icon(imageVector = Default.AccountCircle, contentDescription = "Perfil de usuario")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -146,10 +157,21 @@ fun HomeScreen(paddingContent: PaddingValues) {
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { mostrarDialogo = true }, // Abre el formulario
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    imageVector = Default.Add, //
+                    contentDescription = "Añadir tarea"
+                )
+            }
         }
     ) { innerPadding ->
 
-        // 📜 Aquí agregamos el scroll vertical para que toda la pantalla sea deslizable
+        // Aquí agregamos el scroll vertical para que toda la pantalla sea deslizable
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -157,7 +179,7 @@ fun HomeScreen(paddingContent: PaddingValues) {
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // 💳 Tarjeta de bienvenida
+            // Tarjeta de bienvenida
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,7 +202,7 @@ fun HomeScreen(paddingContent: PaddingValues) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 👥 Fila horizontal con los avatares circulares interactivos
+            // Fila horizontal con los avatares circulares interactivos
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,13 +211,13 @@ fun HomeScreen(paddingContent: PaddingValues) {
             ) {
                 miembros.forEach { (nombre, colorDeFondo) ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val esElActivo = nombre == miembroSeleccionado
+                        val esElActivo = nombre == miembroVisualizado
 
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
                                 .background(color = colorDeFondo, shape = CircleShape)
-                                .clickable { miembroSeleccionado = nombre } // 👆 Cambia el estado
+                                .clickable { miembroVisualizado = nombre } // 👆 Cambia el estado
                                 .border(
                                     width = if (esElActivo) 3.dp else 0.dp, // 🖼️ Borde dinámico
                                     color = if (esElActivo) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
@@ -225,16 +247,16 @@ fun HomeScreen(paddingContent: PaddingValues) {
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // 🏷️ Título dinámico de la sección de tareas
+            // Título dinámico de la sección de tareas
             Text(
-                text = "Tareas de $miembroSeleccionado",
+                text = "Tareas de $miembroVisualizado",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🎴 Lista de tareas del miembro seleccionado
+            // Lista de tareas del miembro seleccionado
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 if (tareasDelMiembro.isEmpty()) {
                     Text(
@@ -261,7 +283,15 @@ fun HomeScreen(paddingContent: PaddingValues) {
                             ) {
                                 Checkbox(
                                     checked = tarea.estaCompletada,
-                                    onCheckedChange = { /* Próximo paso: actualizar el estado del checkbox */ }
+                                    onCheckedChange = { estaMarcada ->
+                                        // Buscamos el índice exacto de la tarea actual en la lista
+                                        val indice = tareasDelMiembro.indexOf(tarea)
+
+                                        if (indice != -1) {
+                                            // Reemplazamos la tarea por una copia con el nuevo estado del checkbox
+                                            tareasDelMiembro[indice] = tarea.copy(estaCompletada = estaMarcada)
+                                        }
+                                    }
                                 )
 
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -283,6 +313,92 @@ fun HomeScreen(paddingContent: PaddingValues) {
                 }
             }
         }
+    }
+
+    if (mostrarDialogo) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogo = false },
+            title = {
+                Text(text = "Nueva tarea", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = nuevoTitulo,
+                        onValueChange = { nuevoTitulo = it },
+                        label = { Text("Título de la tarea") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = nuevaDescripcion,
+                        onValueChange = { nuevaDescripcion = it },
+                        label = { Text("Descripción (opcional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+
+                    // ⚡ Sección de Prioridad con Chips
+                    Text(
+                        text = "Prioridad",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = prioridadSeleccionada == "Alta",
+                            onClick = { prioridadSeleccionada = "Alta" },
+                            label = { Text("Alta") }
+                        )
+                        FilterChip(
+                            selected = prioridadSeleccionada == "Media",
+                            onClick = { prioridadSeleccionada = "Media" },
+                            label = { Text("Media") }
+                        )
+                        FilterChip(
+                            selected = prioridadSeleccionada == "Baja",
+                            onClick = { prioridadSeleccionada = "Baja" },
+                            label = { Text("Baja") }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (nuevoTitulo.isNotBlank()) {
+                        val nuevaTarea = TareaFamiliar(
+                            id = (0..1000).random(),
+                            titulo = nuevoTitulo,
+                            detalle = "$nuevaDescripcion • Prioridad $prioridadSeleccionada",
+                            estaCompletada = false
+                        )
+
+                        // Se asigna exclusivamente al usuario logueado
+                        tareasPorMiembro[usuarioLogueado]?.add(nuevaTarea)
+
+                        nuevoTitulo = ""
+                        nuevaDescripcion = ""
+                        prioridadSeleccionada = "Media"
+                        mostrarDialogo = false
+                    }
+                }) {
+                    Text("Guardar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogo = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
